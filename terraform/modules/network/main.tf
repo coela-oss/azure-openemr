@@ -13,8 +13,8 @@ resource "azurerm_subnet" "db" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_subnet" "erm" {
-  name                 = "erm-subnet"
+resource "azurerm_subnet" "emr" {
+  name                 = "emr-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.2.0/24"]
@@ -29,8 +29,8 @@ resource "azurerm_public_ip" "db_pip" {
   sku = "Basic"
 }
 
-resource "azurerm_public_ip" "erm_pip" {
-  name                = "${var.erm_vm_name}-pip"
+resource "azurerm_public_ip" "emr_pip" {
+  name                = "${var.emr_vm_name}-pip"
   location            = var.location
   resource_group_name = var.resource_group_name
   allocation_method   = "Static"
@@ -91,16 +91,16 @@ resource "azurerm_network_interface" "dbnic" {
   }
 }
 
-resource "azurerm_network_interface" "ermnic" {
-  name                = "${var.erm_vm_name}-nic"
+resource "azurerm_network_interface" "emrnic" {
+  name                = "${var.emr_vm_name}-nic"
   location            = var.location
   resource_group_name = var.resource_group_name
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.erm.id
+    subnet_id                     = azurerm_subnet.emr.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.erm_pip.id
+    public_ip_address_id          = azurerm_public_ip.emr_pip.id
   }
 }
 
@@ -111,6 +111,6 @@ resource "azurerm_network_interface_security_group_association" "db_nsg_assoc" {
 }
 
 resource "azurerm_network_interface_security_group_association" "erm_nsg_assoc" {
-  network_interface_id      = azurerm_network_interface.ermnic.id
+  network_interface_id      = azurerm_network_interface.emrnic.id
   network_security_group_id = azurerm_network_security_group.shared_nsg.id
 }

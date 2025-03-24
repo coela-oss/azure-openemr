@@ -1,0 +1,7 @@
+- name: Setup OpenEMR Stack on emr host
+  hosts: emr
+  become: yes
+  roles:
+    - php
+    - nginx
+    - openemr

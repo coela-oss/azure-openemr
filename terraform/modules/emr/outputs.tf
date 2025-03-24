@@ -1,4 +1,4 @@
-output "erm_id" {
+output "emr_id" {
   value = azurerm_linux_virtual_machine.main.id
 }
 

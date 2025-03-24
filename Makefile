@@ -56,15 +56,21 @@ terraform-destroy:
 
 
 ansible-generate-hosts:
-	@echo "Generating .env from template..."
+	@echo "Generating HOSTS for ansible from Terraform outputs..."
 	@export $$(grep -v '^#' $(ENV_FILE) | xargs) && \
 		./setup/ansible-generate-hosts.sh
 
 ansible-run-playbook-mariadb:
-	@echo "Generating .env from template..."
+	@echo "Running ansible playbook MariaDB..."
 	@export $$(grep -v '^#' $(ENV_FILE) | xargs) && \
 		ANSIBLE_ROLES_PATH=ansible/roles \
 		ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/mariadb.yml
+
+ansible-run-playbook-emr:
+	@echo "Running ansible playbook EMR..."
+	@export $$(grep -v '^#' $(ENV_FILE) | xargs) && \
+		ANSIBLE_ROLES_PATH=ansible/roles \
+		ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/openemr.yml
 
 
 # === クリーンアップ ===

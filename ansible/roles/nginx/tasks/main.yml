@@ -1,0 +1,29 @@
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Remove default nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Deploy OpenEMR nginx config
+  template:
+    src: openemr.conf.j2
+    dest: /etc/nginx/sites-available/openemr
+  notify: Reload nginx
+
+- name: Enable OpenEMR site
+  file:
+    src: /etc/nginx/sites-available/openemr
+    dest: /etc/nginx/sites-enabled/openemr
+    state: link
+  notify: Reload nginx
+
+- name: Start and enable nginx
+  service:
+    name: nginx
+    state: started
+    enabled: true

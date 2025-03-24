@@ -28,6 +28,6 @@ variable "mariadb_vm_name" {
   type        = string
 }
 
-variable "erm_vm_name" {
+variable "emr_vm_name" {
   type        = string
 }

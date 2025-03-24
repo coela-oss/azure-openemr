@@ -1,0 +1,50 @@
+- name: Install git
+  apt:
+    name: 
+      - git
+      - composer
+    state: present
+    update_cache: yes
+
+- name: Check if OpenEMR is already cloned
+  stat:
+    path: "{{ openemr_web_root }}/.git"
+  register: openemr_git_repo
+
+- name: Clone OpenEMR repository
+  git:
+    repo: "{{ openemr_repo_url }}"
+    dest: "{{ openemr_web_root }}"
+    version: "{{ openemr_branch }}"
+    force: yes
+  when: not openemr_git_repo.stat.exists
+  notify: Set permissions
+
+
+- name: Run composer install
+  command: composer install --no-dev
+  args:
+    chdir: "{{ openemr_web_root }}"
+  environment:
+    COMPOSER_ALLOW_SUPERUSER: "1"
+
+- name: Copy example .env file if .env doesn't exist
+  copy:
+    src: "{{ openemr_web_root }}/.env.example"
+    dest: "{{ openemr_web_root }}/.env"
+    remote_src: yes
+  when: not lookup('file', openemr_web_root + '/.env', errors='ignore')
+
+- name: Set ownership of OpenEMR files
+  file:
+    path: "{{ openemr_web_root }}"
+    owner: www-data
+    group: www-data
+    recurse: yes
+
+- name: Set file permissions for sites directory
+  file:
+    path: "{{ openemr_web_root }}/sites"
+    mode: "0750"
+    state: directory
+    recurse: yes

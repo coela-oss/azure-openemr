@@ -1,0 +1,28 @@
+- name: Add PHP 8.3 repository
+  apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+
+- name: Install PHP 8.3 and required extensions
+  apt:
+    name:
+      - php8.3
+      - php8.3-cli
+      - php8.3-fpm
+      - php8.3-mysql
+      - php8.3-gd
+      - php8.3-curl
+      - php8.3-xml
+      - php8.3-mbstring
+      - php8.3-zip
+      - php8.3-soap
+      - unzip
+      - wget
+    state: present
+    update_cache: yes
+
+- name: Ensure PHP-FPM is started
+  service:
+    name: php8.3-fpm
+    state: started
+    enabled: true

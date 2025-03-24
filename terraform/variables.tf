@@ -51,21 +51,21 @@ variable "mariadb_admin_password" {
   sensitive = true
 }
 
-# OpenERM
-variable "erm_vm_name" {
-  default = "erm-vm"
+# OpenEMR
+variable "emr_vm_name" {
+  default = "emr-vm"
 }
 
-variable "erm_vm_size" {
-  description = "OpenERM Azure VM size"
+variable "emr_vm_size" {
+  description = "OpenEMR Azure VM size"
   type        = string
   default     = "Standard_B2ms"
 }
 
-variable "erm_admin_username" {
+variable "emr_admin_username" {
   default = "adminuser"
 }
 
-variable "erm_admin_password" {
+variable "emr_admin_password" {
   sensitive = true
 }
