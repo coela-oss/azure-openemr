@@ -1,7 +1,0 @@
-- hosts: openemr
-  become: yes
-  roles:
-    - nginx
-    - php
-    - mysql
-    - openemr

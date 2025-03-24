@@ -1,0 +1,8 @@
+- name: Include install tasks
+  import_tasks: install.yml
+
+- name: Include config tasks
+  import_tasks: config.yml
+
+- name: Include secure setup
+  import_tasks: secure.yml

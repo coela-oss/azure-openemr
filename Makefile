@@ -3,7 +3,7 @@
 ENV_FILE := .env
 ENV_TEMPLATE := .env.template
 
-.PHONY: all install-deps setup-env terraform-init terraform-apply terraform-destroy clean show-env
+.PHONY: all install-deps setup-env terraform-init terraform-apply terraform-destroy clean show-env ansible-generate-hosts
 
 # === 初期化処理（全体実行） ===
 all: install-deps setup-env terraform-init terraform-apply
@@ -53,6 +53,18 @@ terraform-destroy:
 	@echo "Running terraform destroy..."
 	@export $$(grep -v '^#' $(ENV_FILE) | xargs) && \
 		terraform -chdir=terraform destroy
+
+
+ansible-generate-hosts:
+	@echo "Generating .env from template..."
+	@export $$(grep -v '^#' $(ENV_FILE) | xargs) && \
+		./setup/ansible-generate-hosts.sh
+
+ansible-run-playbook-mariadb:
+	@echo "Generating .env from template..."
+	@export $$(grep -v '^#' $(ENV_FILE) | xargs) && \
+		ANSIBLE_ROLES_PATH=ansible/roles \
+		ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/mariadb.yml
 
 
 # === クリーンアップ ===

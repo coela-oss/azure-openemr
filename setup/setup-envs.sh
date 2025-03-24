@@ -5,8 +5,8 @@ set -e
 SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 TENANT_ID=$(az account show --query tenantId -o tsv)
 
-SSH_DIR="~/.ssh"
-KEY_NAME="id_rsa"
+SSH_DIR=~/.ssh
+KEY_NAME=id_rsa
 mkdir -p "$SSH_DIR"
 
 if [ ! -f "$SSH_DIR/$KEY_NAME" ]; then
@@ -15,8 +15,9 @@ if [ ! -f "$SSH_DIR/$KEY_NAME" ]; then
 else
   echo "ℹ️ Use the SSH Key exists: $SSH_DIR/$KEY_NAME"
 fi
-PUB_KEY_PATH="$(cd "$SSH_DIR" && pwd)/${KEY_NAME}.pub"
 
+PUB_KEY_PATH="$(cd "$SSH_DIR" && pwd)/${KEY_NAME}.pub"
+PRI_KEY_PATH="$(cd "$SSH_DIR" && pwd)/${KEY_NAME}"
 PUBLIC_IP=$(curl -s https://api.ipify.org)
 
 sed \
@@ -24,6 +25,7 @@ sed \
   -e "s|__TENANT_ID__|$TENANT_ID|" \
   -e "s|__ALLOWED_SSH_IPS__|'[\"$PUBLIC_IP\"]'|" \
   -e "s|__SSH_PUBLIC_KEY_PATH__|$PUB_KEY_PATH|" \
+  -e "s|__SSH_PRIVATE_KEY_PATH__|$PRI_KEY_PATH|" \
   .env.template > .env
 
 echo ".env generated:"

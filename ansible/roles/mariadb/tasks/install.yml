@@ -1,0 +1,29 @@
+- name: Install GnuPG for key management
+  apt:
+    name: gnupg
+    state: present
+    update_cache: yes
+
+- name: Add MariaDB signing key
+  apt_key:
+    url: https://mariadb.org/mariadb_release_signing_key.asc
+    state: present
+
+- name: Add MariaDB repository (10.11)
+  apt_repository:
+    repo: "deb [arch=amd64] http://mariadb.mirror.globo.tech/repo/10.11/debian {{ ansible_distribution_release }} main"
+    state: present
+    filename: "MariaDB"
+
+- name: Install MariaDB Server
+  apt:
+    name: [mariadb-server, python3-pymysql]
+    state: present
+    update_cache: yes
+
+
+- name: Ensure MariaDB is running and enabled
+  service:
+    name: mariadb
+    state: started
+    enabled: true

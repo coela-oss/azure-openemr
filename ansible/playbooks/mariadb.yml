@@ -1,0 +1,8 @@
+- name: Setup MariaDB on mariadb host
+  hosts: mariadb
+  become: yes
+  collections:
+    - community.mysql
+  roles:
+    - mariadb
+
