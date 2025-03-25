@@ -20,5 +20,6 @@
     login_user: root
     login_password: "{{ db_root_password }}"
     name: "{{ db_user }}"
+    host: "{{ emr_host }}"
     state: present
     priv: "{{ db_name }}.*:ALL"

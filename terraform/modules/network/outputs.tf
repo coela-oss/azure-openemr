@@ -22,3 +22,7 @@ output "db_private_ip" {
 output "emr_public_ip" {
   value = azurerm_public_ip.emr_pip.ip_address
 }
+
+output "emr_private_ip" {
+  value = azurerm_network_interface.emrnic.private_ip_address
+}

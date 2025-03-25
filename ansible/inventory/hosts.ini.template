@@ -1,5 +1,5 @@
 [mariadb]
-mariadb01 ansible_host={mariadb_ip} ansible_user={mariadb_ssh_user} ansible_ssh_private_key_file={ssh_private_key}
+mariadb01 ansible_host={mariadb_ip} ansible_user={mariadb_ssh_user} ansible_ssh_private_key_file={ssh_private_key} emr_host={emr_host}
 
 [emr]
 emr01 ansible_host={emr_ip} ansible_user={emr_ssh_user} ansible_ssh_private_key_file={ssh_private_key} db_host={db_host}
