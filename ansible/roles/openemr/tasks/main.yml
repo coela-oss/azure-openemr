@@ -65,9 +65,9 @@
     - /var/www/html/openemr/sites/default/letter_templates
 
 - name: Install frontend dependencies
-  npm:
-    path: /var/www/html/openemr
-    production: no
+  command: npm install
+  args:
+    chdir: /var/www/html/openemr
 
 - name: Build frontend
   command: npm run build

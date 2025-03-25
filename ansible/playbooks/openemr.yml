@@ -4,4 +4,5 @@
   roles:
     - php
     - nginx
+    - nodejs
     - openemr
