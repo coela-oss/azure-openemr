@@ -15,6 +15,10 @@ output "db_public_ip" {
   value = azurerm_public_ip.db_pip.ip_address
 }
 
+output "db_private_ip" {
+  value = azurerm_network_interface.dbnic.private_ip_address
+}
+
 output "emr_public_ip" {
   value = azurerm_public_ip.emr_pip.ip_address
 }

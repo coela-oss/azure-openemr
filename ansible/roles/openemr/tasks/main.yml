@@ -48,3 +48,36 @@
     mode: "0750"
     state: directory
     recurse: yes
+
+- name: Set correct permissions for OpenEMR directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  loop:
+    - /var/www/html/openemr/sites
+    - /var/www/html/openemr/sites/default/documents
+    - /var/www/html/openemr/sites/default/edi
+    - /var/www/html/openemr/sites/default/era
+    - /var/www/html/openemr/sites/default/letter_templates
+
+- name: Install frontend dependencies
+  npm:
+    path: /var/www/html/openemr
+    production: no
+
+- name: Build frontend
+  command: npm run build
+  args:
+    chdir: /var/www/html/openemr
+
+- name: Copy sqlconf.php
+  template:
+    src: sqlconf.php.j2
+    dest: /var/www/html/openemr/sites/default/sqlconf.php
+    owner: www-data
+    group: www-data
+    mode: '0644'

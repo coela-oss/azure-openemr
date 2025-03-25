@@ -1,0 +1,14 @@
+<?php
+
+global $config;
+$config = array();
+
+$config['sqlconf'] = array(
+  'host'     => '{{ db_host }}',
+  'port'     => '{{ db_port | default("3306") }}',
+  'login'    => '{{ db_user }}',
+  'pass'     => '{{ db_password }}',
+  'dbase'    => '{{ db_name }}',
+  'driver'   => 'mysql',
+  'encoding' => 'utf8mb4'
+);

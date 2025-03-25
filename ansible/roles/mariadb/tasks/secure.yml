@@ -1,31 +1,6 @@
-- name: Set root password (localhost)
+- name: Set mariadb root password
   mysql_user:
+    login_unix_socket: "{{ mariadb_login_unix_socket }}"
     name: root
+    password: "{{db_root_password}}"
     host: localhost
-    password: "{{ lookup('env', 'ANSIBLE_mariadb_root_password') }}"
-    login_unix_socket: /run/mysqld/mysqld.sock
-  when: lookup('env', 'ANSIBLE_mariadb_root_password') != ''
-
-- name: Remove anonymous users
-  community.mysql.mysql_user:
-    name: anonymous
-    host_all: yes
-    state: absent
-    login_user: root
-    login_password: "{{ lookup('env', 'ANSIBLE_mariadb_root_password') }}"
-
-- name: Remove test database
-  community.mysql.mysql_db:
-    name: test
-    state: absent
-    login_user: root
-    login_password: "{{ lookup('env', 'ANSIBLE_mariadb_root_password') }}"
-
-- name: Ensure root user has USAGE privilege on all databases
-  community.mysql.mysql_user:
-    name: root
-    host: localhost
-    priv: '*.*:USAGE'
-    state: present
-    login_user: root
-    login_password: "{{ lookup('env', 'ANSIBLE_mariadb_root_password') }}"

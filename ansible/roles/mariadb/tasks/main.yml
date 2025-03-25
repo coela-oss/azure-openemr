@@ -6,3 +6,6 @@
 
 - name: Include secure setup
   import_tasks: secure.yml
+
+- name: Include emrdb setup
+  import_tasks: dbuser.yml

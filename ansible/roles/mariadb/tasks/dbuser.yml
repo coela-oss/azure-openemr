@@ -1,0 +1,24 @@
+- name: Check if openemr user exists
+  community.mysql.mysql_user:
+    name: "{{ db_user }}"
+    login_user: root
+    login_password: "{{ db_root_password }}"
+  register: openemr_user_info
+  failed_when: false
+  changed_when: false
+
+- name: Create openemr database
+  community.mysql.mysql_db:
+    check_implicit_admin: true
+    name: "{{ db_name }}"
+    state: present
+    login_user: root
+    login_password: "{{ db_root_password }}"
+
+- name: Create openemr user and grant privileges
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: "{{ db_root_password }}"
+    name: "{{ db_user }}"
+    state: present
+    priv: "{{ db_name }}.*:ALL"

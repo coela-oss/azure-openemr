@@ -77,6 +77,48 @@ resource "azurerm_network_security_rule" "ssh_rules" {
   network_security_group_name = azurerm_network_security_group.shared_nsg.name
 }
 
+resource "azurerm_network_security_rule" "allow_http_emr" {
+  name                        = "Allow-HTTP-EMR"
+  priority                    = 2000
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "80"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.shared_nsg.name
+}
+
+resource "azurerm_network_security_rule" "allow_https_emr" {
+  name                        = "Allow-HTTPS-EMR"
+  priority                    = 2001
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "443"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.shared_nsg.name
+}
+
+resource "azurerm_network_security_rule" "allow_mysql_from_emr" {
+  name                        = "Allow-MySQL-From-EMR"
+  priority                    = 2002
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3306"
+  source_address_prefix       = azurerm_subnet.emr.address_prefixes[0]
+  destination_address_prefix  = azurerm_subnet.db.address_prefixes[0]
+  resource_group_name         = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.shared_nsg.name
+}
+
 # NICs
 resource "azurerm_network_interface" "dbnic" {
   name                = "${var.mariadb_vm_name}-nic"

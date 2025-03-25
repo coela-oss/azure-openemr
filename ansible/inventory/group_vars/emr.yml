@@ -1,3 +1,8 @@
 openemr_web_root: "/var/www/html/openemr"
 openemr_repo_url: "{{ lookup('env', 'OPENEMR_REPO_URL') | default('https://github.com/openemr/openemr.git') }}"
 openemr_branch: "{{ lookup('env', 'OPENEMR_BRANCH') | default('rel-702') }}"
+db_host: "{{ db_host }}"
+db_port: "3306"
+db_user: "{{ lookup('env', 'ANSIBLE_mariadb_openemr_username') | default('openemr') }}"
+db_password: "{{ lookup('env', 'ANSIBLE_mariadb_openemr_password') | default('openemr') }}"
+db_name: "{{ lookup('env', 'ANSIBLE_mariadb_openemr_dbname') | default('CHANGEME123!') }}"

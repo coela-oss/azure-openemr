@@ -1,2 +1,8 @@
 mariadb_bind_address: "0.0.0.0"
 mariadb_port: 3306
+mariadb_data_dir: /var/lib/mysql
+mariadb_login_unix_socket: /var/run/mysqld/mysqld.sock
+db_user: "{{ lookup('env', 'ANSIBLE_mariadb_openemr_username') | default('openemr') }}"
+db_password: "{{ lookup('env', 'ANSIBLE_mariadb_openemr_password') | default('openemr') }}"
+db_name: "{{ lookup('env', 'ANSIBLE_mariadb_openemr_dbname') | default('CHANGEME123!') }}"
+db_root_password: "{{ lookup('env', 'ANSIBLE_mariadb_root_password') | default('CHANGEME123!') }}"
