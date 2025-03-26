@@ -49,6 +49,17 @@ This executes:
 4. Auto install OpenEMR.
 
 
+## How to
+
+### Estimate Infracost
+
+- Get API token from [infracost](https://www.infracost.io/) 
+- Create your `.env` file via `make setup-env` from `.env.template`
+  - must not modify the `.env.template` directly.
+- Set the token to `.env` `INFRACOST_API_KEY`
+- `make terraform-estimate`
+
+
 ## 📝 Notes
 
 Customize .env.template with values suited to your environment before running the setup.
