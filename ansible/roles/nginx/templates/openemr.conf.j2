@@ -1,26 +1,113 @@
-server {
-    listen 80;
-    server_name _;
+worker_processes auto;
 
-    root {{ openemr_web_root }};
-    index index.php index.html index.htm;
+events {
+    worker_connections 1024;
+}
 
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
     access_log /var/log/nginx/openemr_access.log;
     error_log /var/log/nginx/openemr_error.log;
 
-    location / {
-        try_files $uri $uri/ /index.php?$args;
+    sendfile on;
+    keepalive_timeout 65;
+
+    index index.php index.html index.htm;
+
+    {% if nginx_domain is defined and nginx_domain != "" %}
+
+    server {
+        listen 80;
+        server_name {{ nginx_domain }} {{ nginx_www_alias | default('') }};
+        return 301 https://$host$request_uri;
     }
 
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
+    server {
+        listen 443 ssl;
+        server_name {{ nginx_domain }} {{ nginx_www_alias | default('') }};
+        root {{ openemr_web_root }};
+
+        ssl_certificate     /etc/letsencrypt/live/{{ nginx_domain }}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/{{ nginx_domain }}/privkey.pem;
+
+        location = /favicon.ico { log_not_found off; access_log off; }
+        location = /robots.txt  { log_not_found off; access_log off; }
+        location ~ /\.          { deny all; }
+
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+            access_log off;
+            log_not_found off;
+            expires max;
+        }
+
+        location /images/ {
+            valid_referers none blocked {{ nginx_domain }} {{ nginx_www_alias | default('') }};
+            if ($invalid_referer) {
+                return 403;
+            }
+        }
+
+        location / {
+            try_files $uri $uri/ /index.php;
+        }
+
+        location ~ \.php$ {
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_param HTTP_AUTHORIZATION $http_authorization;
+            fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+            fastcgi_buffers 16 16k;
+            fastcgi_buffer_size 32k;
+            try_files $uri =404;
+        }
+
+        error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+            root {{ openemr_web_root }};
+        }
     }
 
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
-        expires max;
-        log_not_found off;
+    {% else %}
+
+    server {
+        listen 80;
+        server_name localhost;
+        root {{ openemr_web_root }};
+
+        location = /favicon.ico { log_not_found off; access_log off; }
+        location = /robots.txt  { log_not_found off; access_log off; }
+        location ~ /\.          { deny all; }
+
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+            access_log off;
+            log_not_found off;
+            expires max;
+        }
+
+        location / {
+            try_files $uri $uri/ /index.php;
+        }
+
+        location ~ \.php$ {
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_param HTTP_AUTHORIZATION $http_authorization;
+            fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+            fastcgi_buffers 16 16k;
+            fastcgi_buffer_size 32k;
+            try_files $uri =404;
+        }
+
+        error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+            root {{ openemr_web_root }};
+        }
     }
+
+    {% endif %}
 }

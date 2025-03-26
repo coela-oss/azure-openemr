@@ -1,0 +1,22 @@
+- name: Ensure account key exists
+  community.crypto.openssl_privatekey:
+    path: "/etc/ssl/private/{{ nginx_domain }}-account.key"
+    size: 4096
+
+- name: Register with ACME (Let's Encrypt)
+  community.crypto.acme_account:
+    account_key_src: "/etc/ssl/private/{{ nginx_domain }}-account.key"
+    email: "{{ nginx_letsencrypt_email }}"
+    terms_agreed: true
+    acme_directory: "https://acme-v02.api.letsencrypt.org/directory"
+
+- name: Ensure domain private key exists
+  community.crypto.openssl_privatekey:
+    path: "/etc/ssl/private/{{ nginx_domain }}.key"
+    size: 4096
+
+- name: Create certificate request
+  community.crypto.openssl_csr:
+    path: "/etc/ssl/private/{{ nginx_domain }}.csr"
+    privatekey_path: "/etc/ssl/private/{{ nginx_domain }}.key"
+    common_name: "{{ nginx_domain }}"

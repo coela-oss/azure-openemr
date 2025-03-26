@@ -1,7 +1,9 @@
-- name: Install nginx
+- name: Install NGINX and Certbot
   apt:
-    name: nginx
-    state: present
+    name:
+      - nginx
+      - certbot
+      - python3-certbot-nginx
     update_cache: yes
 
 - name: Remove default nginx site
@@ -27,3 +29,22 @@
     name: nginx
     state: started
     enabled: true
+
+- name: Place HTTP-01 challenge file
+  community.crypto.acme_certificate:
+    account_key_src: "/etc/ssl/private/{{ domain_name }}-account.key"
+    csr: "/etc/ssl/private/{{ domain_name }}.csr"
+    dest: "/etc/ssl/certs/{{ domain_name }}.crt"
+    fullchain_dest: "/etc/ssl/certs/{{ domain_name }}-fullchain.crt"
+    challenge: http-01
+    acme_directory: "https://acme-v02.api.letsencrypt.org/directory"
+    webroot: "{{ webroot_path }}"
+    remaining_days: 30
+  register: acme_cert_result
+  when: 
+
+- name: Reload nginx if certificate changed
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+  when: acme_cert_result.changed

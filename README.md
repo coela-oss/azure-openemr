@@ -8,105 +8,46 @@ This project provides a Makefile to automate the setup and deployment of infrast
 
 Ensure your environment supports the following:
 
-- Bash shell
+- Bash shell (WSL Ubuntu22)
 - `make`
 - Internet access for downloading dependencies
+- Register Infracost (Optional)
 
 ---
 
 ## 🚀 Quick Start
 
-Run all setup steps at once:
+### Setup Azure Cloud Infrastructures
 
 ```sh
-make all
+make azure
 ```
 
 This executes:
 
 1. Installing required tools (Azure CLI, Terraform, Ansible, Infracost)
-
 2. Generating .env from .env.template
-
 3. Initializing Terraform
-
 4. Applying Terraform configuration to provision infrastructure
 
-## 🛠️ Make Targets
+### Domain routing
 
-```
-make install-deps
-```
+If you need, set Public IP Address to your Domain Provider with the terraform output variables.
 
-Installs required tools:
 
-* Ansible
-* Azure CLI
-* Terraform
-* Infracost(Need Registration)
+### Run Ansible Playbook
 
-### Generates the .env file from .env.template.
-
-```
-make setup-env
+```sh
+make emr
 ```
 
-### Displays the contents of the .env file.
-```
-make show-env
-```
-### Initializes the Terraform configuration located in the terraform directory.
+This executes:
 
-```
-make terraform-init
-```
+1. Installing packages (MariaDB, Nginx, PHP, OpenEMR)
+2. Generate `hosts.ini` for each server.
+3. Let's Encrypt server certification(Optional when set `ANSIBLE_nginx_domain` and `ANSIBLE_nginx_letsencrypt_email`)
+4. Auto install OpenEMR.
 
-### Displays the Terraform execution plan without making changes.
-
-```
-make terraform-plan
-```
-
-### Uses Infracost to estimate the cost of your Terraform configuration.
-
-```
-make terraform-estimate
-```
-
-### Applies the Terraform configuration to provision the infrastructure.
-
-```
-make terraform-apply
-```
-
-### Destroys infrastructure that was provisioned with Terraform.
-
-```
-make terraform-destroy
-```
-
-### Generates the hosts.ini inventory file for Ansible based on Terraform outputs.
-```
-make ansible-generate-hosts
-```
-
-### Runs the Ansible playbook to install and configure MariaDB.
-
-```
-make ansible-run-playbook-mariadb
-```
-
-### Runs the Ansible playbook to install and configure OpenEMR.
-
-```
-make ansible-run-playbook-emr
-```
-
-### Deletes the .env file.
-
-```
-make clean
-```
 
 ## 📝 Notes
 

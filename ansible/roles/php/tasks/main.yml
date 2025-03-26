@@ -21,6 +21,15 @@
     state: present
     update_cache: yes
 
+- name: Update php.ini for PHP 8.3
+  template:
+    src: php.ini.j2
+    dest: /etc/php/8.3/fpm/php.ini
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart PHP 8.3 FPM
+
 - name: Ensure PHP-FPM is started
   service:
     name: php8.3-fpm

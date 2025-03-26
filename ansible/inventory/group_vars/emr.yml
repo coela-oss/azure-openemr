@@ -1,3 +1,5 @@
+nginx_domain: "{{ lookup('env', 'ANSIBLE_nginx_domain') | default('') }}"
+nginx_letsencrypt_email: "{{ lookup('env', 'ANSIBLE_nginx_letsencrypt_email') | default('') }}"
 openemr_web_root: "/var/www/html/openemr"
 openemr_repo_url: "{{ lookup('env', 'OPENEMR_REPO_URL') | default('https://github.com/openemr/openemr.git') }}"
 openemr_branch: "{{ lookup('env', 'OPENEMR_BRANCH') | default('rel-702') }}"

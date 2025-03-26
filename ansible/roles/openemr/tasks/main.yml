@@ -1,8 +1,14 @@
-- name: Install git
-  apt:
-    name: 
+- name: Install packages for OpenEMR
+  become: true
+  ansible.builtin.apt:
+    name:
       - git
       - composer
+      - build-essential
+      - python3
+      - make
+      - g++
+      - libxml2-dev
     state: present
     update_cache: yes
 
@@ -58,6 +64,7 @@
     group: www-data
     mode: '0755'
   loop:
+    - /var/www/html/openemr/ccdaservice
     - /var/www/html/openemr/sites
     - /var/www/html/openemr/sites/default/documents
     - /var/www/html/openemr/sites/default/edi
@@ -69,18 +76,23 @@
   args:
     chdir: /var/www/html/openemr
 
+- name: Add openemradmin user to www-data group
+  become: true
+  ansible.builtin.user:
+    name: openemradmin
+    groups: www-data
+    append: yes
+
 - name: Build frontend
   command: npm run build
   args:
     chdir: /var/www/html/openemr
 
-#- name: Copy sqlconf.php
-#  template:
-#    src: sqlconf.php.j2
-#    dest: /var/www/html/openemr/sites/default/sqlconf.php
-#    owner: www-data
-#    group: www-data
-#    mode: '0644'
+# refer /var/www/html/openemr/ccdaservice/README.md
+- name: Install ccda dependencies
+  command: npm install
+  args:
+    chdir: /var/www/html/openemr/ccdaservice
 
 - name: Set correct permissions for OpenEMR Config
   file:

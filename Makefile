@@ -3,10 +3,11 @@
 ENV_FILE := .env
 ENV_TEMPLATE := .env.template
 
-.PHONY: all install-deps setup-env terraform-init terraform-apply terraform-destroy clean show-env ansible-generate-hosts
+.PHONY: azure emr install-deps setup-env terraform-init terraform-apply terraform-destroy clean show-env ansible-generate-hosts
 
-# === 初期化処理（全体実行） ===
-all: install-deps setup-env terraform-init terraform-apply
+azure: install-deps setup-env terraform-init terraform-apply
+emr: ansible-generate-hosts ansible-run-playbook-mariadb ansible-run-playbook-emr
+remove: terraform-destroy clean
 
 # === 必要なパッケージのインストール ===
 install-deps:
@@ -71,8 +72,6 @@ ansible-run-playbook-emr:
 	@export $$(grep -v '^#' $(ENV_FILE) | xargs) && \
 		ANSIBLE_ROLES_PATH=ansible/roles \
 		ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/openemr.yml
-
-
 
 clean:
 	rm -f $(ENV_FILE)
