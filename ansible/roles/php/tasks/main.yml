@@ -30,8 +30,7 @@
     mode: '0644'
   notify: Restart PHP 8.3 FPM
 
-- name: Ensure PHP-FPM is started
-  service:
-    name: php8.3-fpm
-    state: started
-    enabled: true
+- name: Remove default php conf
+  file:
+    path: /etc/php/8.3/fpm/pool.d/www.conf
+    state: absent

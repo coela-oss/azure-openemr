@@ -1,113 +1,116 @@
-worker_processes auto;
+{% if nginx_domain is defined and nginx_domain != "" %}
+{% set is_www = nginx_domain.startswith("www.") %}
+{% set bare_domain = nginx_domain[4:] if is_www else nginx_domain %}
+{% set all_domains = nginx_domain ~ " " ~ ("www." ~ bare_domain if not is_www else bare_domain) %}
 
-events {
-    worker_connections 1024;
+server {
+    listen 80;
+    server_name {{ all_domains }};
+    return 301 https://$host$request_uri;
 }
 
-http {
-    include       mime.types;
-    default_type  application/octet-stream;
-
-    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
-                    '$status $body_bytes_sent "$http_referer" '
-                    '"$http_user_agent" "$http_x_forwarded_for"';
+server {
+    listen 443 ssl http2;
+    server_name {{ all_domains }};
+    root {{ openemr_web_root }};
     access_log /var/log/nginx/openemr_access.log;
     error_log /var/log/nginx/openemr_error.log;
 
-    sendfile on;
-    keepalive_timeout 65;
+    ssl_certificate     /etc/letsencrypt/live/{{ bare_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ bare_domain }}/privkey.pem;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
 
-    index index.php index.html index.htm;
+    location = /favicon.ico { log_not_found off; access_log off; }
+    location = /robots.txt  { log_not_found off; access_log off; }
+    location ~ /\.          { deny all; }
 
-    {% if nginx_domain is defined and nginx_domain != "" %}
-
-    server {
-        listen 80;
-        server_name {{ nginx_domain }} {{ nginx_www_alias | default('') }};
-        return 301 https://$host$request_uri;
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+        access_log off;
+        log_not_found off;
+        expires max;
     }
 
-    server {
-        listen 443 ssl;
-        server_name {{ nginx_domain }} {{ nginx_www_alias | default('') }};
-        root {{ openemr_web_root }};
-
-        ssl_certificate     /etc/letsencrypt/live/{{ nginx_domain }}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/{{ nginx_domain }}/privkey.pem;
-
-        location = /favicon.ico { log_not_found off; access_log off; }
-        location = /robots.txt  { log_not_found off; access_log off; }
-        location ~ /\.          { deny all; }
-
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
-            access_log off;
-            log_not_found off;
-            expires max;
-        }
-
-        location /images/ {
-            valid_referers none blocked {{ nginx_domain }} {{ nginx_www_alias | default('') }};
-            if ($invalid_referer) {
-                return 403;
-            }
-        }
-
-        location / {
-            try_files $uri $uri/ /index.php;
-        }
-
-        location ~ \.php$ {
-            include fastcgi_params;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            fastcgi_param HTTP_AUTHORIZATION $http_authorization;
-            fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-            fastcgi_buffers 16 16k;
-            fastcgi_buffer_size 32k;
-            try_files $uri =404;
-        }
-
-        error_page 500 502 503 504 /50x.html;
-        location = /50x.html {
-            root {{ openemr_web_root }};
+    location /images/ {
+        valid_referers none blocked {{ all_domains }};
+        if ($invalid_referer) {
+            return 403;
         }
     }
 
-    {% else %}
-
-    server {
-        listen 80;
-        server_name localhost;
-        root {{ openemr_web_root }};
-
-        location = /favicon.ico { log_not_found off; access_log off; }
-        location = /robots.txt  { log_not_found off; access_log off; }
-        location ~ /\.          { deny all; }
-
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
-            access_log off;
-            log_not_found off;
-            expires max;
-        }
-
-        location / {
-            try_files $uri $uri/ /index.php;
-        }
-
-        location ~ \.php$ {
-            include fastcgi_params;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            fastcgi_param HTTP_AUTHORIZATION $http_authorization;
-            fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-            fastcgi_buffers 16 16k;
-            fastcgi_buffer_size 32k;
-            try_files $uri =404;
-        }
-
-        error_page 500 502 503 504 /50x.html;
-        location = /50x.html {
-            root {{ openemr_web_root }};
-        }
+    location ~* ^/sites/.*/(documents|edi|era) {
+        deny all;
     }
 
-    {% endif %}
+    {% raw %}
+    if (!-e $request_filename) {
+        rewrite ^(.*/zend_modules/public)(.*) $1/index.php?$is_args$args last;
+        rewrite ^(.*/portal/patient)(.*) $1/index.php?_REWRITE_COMMAND=$1$2 last;
+        rewrite ^(.*/apis/)(.*) $1/dispatch.php?_REWRITE_COMMAND=$2 last;
+        rewrite ^(.*/oauth2/)(.*) $1/authorize.php?_REWRITE_COMMAND=$2 last;
+    }
+    {% endraw %}
+
+    location / {
+        try_files $uri $uri/ /index.php;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param HTTP_AUTHORIZATION $http_authorization;
+        fastcgi_pass unix:/run/php/php8.3-openemr.sock;
+        fastcgi_buffers 16 16k;
+        fastcgi_buffer_size 32k;
+        try_files $uri =404;
+    }
 }
+
+{% else %}
+
+server {
+    listen 80;
+    root {{ openemr_web_root }};
+    access_log /var/log/nginx/openemr_access.log;
+    error_log /var/log/nginx/openemr_error.log;
+
+    location = /favicon.ico { log_not_found off; access_log off; }
+    location = /robots.txt  { log_not_found off; access_log off; }
+    location ~ /\.          { deny all; }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+        access_log off;
+        log_not_found off;
+        expires max;
+    }
+
+    location ~* ^/sites/.*/(documents|edi|era) {
+        deny all;
+    }
+
+    {% raw %}
+    if (!-e $request_filename) {
+        rewrite ^(.*/zend_modules/public)(.*) $1/index.php?$is_args$args last;
+        rewrite ^(.*/portal/patient)(.*) $1/index.php?_REWRITE_COMMAND=$1$2 last;
+        rewrite ^(.*/apis/)(.*) $1/dispatch.php?_REWRITE_COMMAND=$2 last;
+        rewrite ^(.*/oauth2/)(.*) $1/authorize.php?_REWRITE_COMMAND=$2 last;
+    }
+    {% endraw %}
+
+    location / {
+        try_files $uri $uri/ /index.php;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param HTTP_AUTHORIZATION $http_authorization;
+        fastcgi_pass unix:/run/php/php8.3-openemr.sock;
+        fastcgi_buffers 16 16k;
+        fastcgi_buffer_size 32k;
+        try_files $uri =404;
+    }
+}
+{% endif %}

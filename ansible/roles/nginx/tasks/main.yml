@@ -11,11 +11,29 @@
     path: /etc/nginx/sites-enabled/default
     state: absent
 
+
+- name: Deploy PHP-FPM pool for nginx user access
+  template:
+    src: nginx-compatible.conf.j2
+    dest: "/etc/php/8.3/fpm/pool.d/www.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart PHP 8.3 FPM
+
+- name: Deploy nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload nginx
+
 - name: Deploy OpenEMR nginx config
   template:
     src: openemr.conf.j2
     dest: /etc/nginx/sites-available/openemr
-  notify: Reload nginx
 
 - name: Enable OpenEMR site
   file:
@@ -27,6 +45,12 @@
 - name: Start and enable nginx
   service:
     name: nginx
+    state: started
+    enabled: true
+
+- name: Start and enable PHP
+  service:
+    name: php8.3-fpm
     state: started
     enabled: true
 
