@@ -1,15 +1,7 @@
 
-- name: Check if root login is possible via login_user/password
-  community.mysql.mysql_info:
-    login_user: root
-    login_password: "{{ db_root_password }}"
-  register: mysql_login_check
-  ignore_errors: true
-
-- name: Set mariadb root password
-  mysql_user:
-    login_unix_socket: "{{ mariadb_login_unix_socket }}"
+- name: Ensure root@localhost uses unix_socket authentication
+  community.mysql.mysql_user:
     name: root
-    password: "{{db_root_password}}"
     host: localhost
-  when: mysql_login_check.failed
+    login_unix_socket: "{{ mariadb_login_unix_socket }}"
+    state: present

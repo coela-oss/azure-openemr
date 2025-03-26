@@ -74,10 +74,40 @@
   args:
     chdir: /var/www/html/openemr
 
-- name: Copy sqlconf.php
-  template:
-    src: sqlconf.php.j2
-    dest: /var/www/html/openemr/sites/default/sqlconf.php
+#- name: Copy sqlconf.php
+#  template:
+#    src: sqlconf.php.j2
+#    dest: /var/www/html/openemr/sites/default/sqlconf.php
+#    owner: www-data
+#    group: www-data
+#    mode: '0644'
+
+- name: Set correct permissions for OpenEMR Config
+  file:
+    path: "{{ item }}"
+    state: file
     owner: www-data
     group: www-data
     mode: '0644'
+  loop:
+    - /var/www/html/openemr/sites/default/sqlconf.php
+
+- name: Copy InstallerAuto.php
+  template:
+    src: InstallerAuto.php.j2
+    dest: /var/www/html/openemr/sites/default/InstallerAuto.php
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Run OpenEMR auto-installer
+  command: >
+    php sites/default/InstallerAuto.php
+  args:
+    chdir: /var/www/html/openemr
+  register: openemr_install_result
+  changed_when: "'Successful' in openemr_install_result.stdout"
+
+- name: Debug OpenEMR installation output
+  debug:
+    var: openemr_install_result.stdout

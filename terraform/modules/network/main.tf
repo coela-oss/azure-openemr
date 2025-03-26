@@ -114,7 +114,7 @@ resource "azurerm_network_security_rule" "allow_mysql_from_emr" {
   source_port_range           = "*"
   destination_port_range      = "3306"
   source_address_prefix       = azurerm_subnet.emr.address_prefixes[0]
-  destination_address_prefix  = azurerm_subnet.db.address_prefixes[0]
+  destination_address_prefix  = "*"
   resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.shared_nsg.name
 }

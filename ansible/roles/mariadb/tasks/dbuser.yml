@@ -2,24 +2,26 @@
   community.mysql.mysql_user:
     name: "{{ db_user }}"
     login_user: root
-    login_password: "{{ db_root_password }}"
+    login_unix_socket: "{{ mariadb_login_unix_socket }}"
   register: openemr_user_info
   failed_when: false
   changed_when: false
 
-- name: Create openemr database
-  community.mysql.mysql_db:
-    check_implicit_admin: true
-    name: "{{ db_name }}"
-    state: present
-    login_user: root
-    login_password: "{{ db_root_password }}"
-
 - name: Create openemr user and grant privileges
   community.mysql.mysql_user:
     login_user: root
-    login_password: "{{ db_root_password }}"
+    login_unix_socket: "{{ mariadb_login_unix_socket }}"
     name: "{{ db_user }}"
     host: "{{ emr_host }}"
     state: present
-    priv: "{{ db_name }}.*:ALL"
+    #priv: "{{db_name}}.*:ALL" TODO expand the variable.
+    priv: "*.*:ALL"
+
+- name: Grant same privileges to root user for openemr database
+  community.mysql.mysql_user:
+    name: root
+    password: "{{ db_root_password }}"
+    host: "{{ emr_host }}"
+    priv: "*.*:ALL"
+    state: present
+    login_unix_socket: "{{ mariadb_login_unix_socket }}"

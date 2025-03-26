@@ -1,8 +1,8 @@
-- name: Deploy custom my.cnf
+- name: Deploy custom 50-server.cnf
   ansible.builtin.template:
-    src: my.cnf.j2
-    dest: "/root/.my.cnf"
+    src: 50-server.cnf.j2
+    dest: /etc/mysql/mariadb.conf.d/50-server.cnf
     owner: root
     group: root
-    mode: "0600"
+    mode: "0644"
   notify: Restart MariaDB
