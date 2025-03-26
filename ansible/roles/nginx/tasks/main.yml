@@ -41,7 +41,7 @@
     webroot: "{{ webroot_path }}"
     remaining_days: 30
   register: acme_cert_result
-  when: 
+  when: domain_name is defined
 
 - name: Reload nginx if certificate changed
   ansible.builtin.service:
