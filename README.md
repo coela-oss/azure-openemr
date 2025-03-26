@@ -1,97 +1,118 @@
-# azure-openemr
+# Terraform & Azure CLI Environment Setup
 
-ローカル試験手順（Ubuntu / WSL 環境向け）
-✅ 1. 依存ツールのインストール
+This project provides a Makefile to automate the setup and deployment of infrastructure on Azure using Terraform, with Ansible for configuration management.
 
-# Terraform
-```
-sudo apt update && sudo apt install -y gnupg software-properties-common curl
-curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
-  | sudo tee /etc/apt/sources.list.d/hashicorp.list
-sudo apt update && sudo apt install terraform
-```
+---
 
-# Ansible
+## 📦 Prerequisites
 
-```
-sudo apt install -y ansible
-```
+Ensure your environment supports the following:
 
-# jq (Terraform出力のパース用)
-```
-sudo apt install -y jq
-```
+- Bash shell
+- `make`
+- Internet access for downloading dependencies
 
-✅ 2. .env ファイルを用意
+---
 
-```
-cp .env.example .env
+## 🚀 Quick Start
+
+Run all setup steps at once:
+
+```sh
+make all
 ```
 
-必要に応じて TF_VAR_db_password などの値を自分の環境に合わせて修正します。
+This executes:
 
-✅ 3. .env を読み込む
+1. Installing required tools (Azure CLI, Terraform, Ansible, Infracost)
 
-# 環境変数として読み込む
-```
-export $(grep -v '^#' .env | xargs)
-```
-※ direnv を使って自動読み込みすると便利です。
+2. Generating .env from .env.template
 
-✅ 4. Terraform 実行
-```
-cd terraform
-```
+3. Initializing Terraform
 
-# 初期化
-```
-terraform init
-```
+4. Applying Terraform configuration to provision infrastructure
 
-# 確認（問題なければ apply）
-```
-terraform plan
-```
-
-# 適用
-```
-terraform apply -auto-approve
-```
-
-✅ 5. 出力された VM の IP アドレスを確認
+## 🛠️ Make Targets
 
 ```
-terraform output -raw vm_public_ip
+make install-deps
 ```
 
-✅ 6. Ansible の inventory を編集
+Installs required tools:
+
+* Ansible
+* Azure CLI
+* Terraform
+* Infracost(Need Registration)
+
+### Generates the .env file from .env.template.
 
 ```
-# ansible/inventories/azure/hosts
-[openemr]
-openemr-vm ansible_host=<上で取得したIP> ansible_user=azureuser ansible_ssh_private_key_file=~/.ssh/id_rsa
-````
-
-✅ 7. Ansible Playbook 実行
-
-```
-cd ..
-ansible-playbook -i ansible/inventories/azure ansible/site.yml
+make setup-env
 ```
 
-✅ 8. 動作確認（ブラウザ）
-
-OpenEMRがデプロイされたサーバのIPにアクセス：
+### Displays the contents of the .env file.
+```
+make show-env
+```
+### Initializes the Terraform configuration located in the terraform directory.
 
 ```
-http://<VMのPublic IP>/openemr
+make terraform-init
 ```
 
-✅ 補足（自動化のためにオススメ）
+### Displays the Terraform execution plan without making changes.
 
-terraform output → hosts ファイルを自動生成するスクリプトを追加する
+```
+make terraform-plan
+```
 
-.env のチェック機構（読み込み失敗時の警告）をShellで入れる
+### Uses Infracost to estimate the cost of your Terraform configuration.
 
-Makefile でワンコマンド化する（例：make deploy）
+```
+make terraform-estimate
+```
+
+### Applies the Terraform configuration to provision the infrastructure.
+
+```
+make terraform-apply
+```
+
+### Destroys infrastructure that was provisioned with Terraform.
+
+```
+make terraform-destroy
+```
+
+### Generates the hosts.ini inventory file for Ansible based on Terraform outputs.
+```
+make ansible-generate-hosts
+```
+
+### Runs the Ansible playbook to install and configure MariaDB.
+
+```
+make ansible-run-playbook-mariadb
+```
+
+### Runs the Ansible playbook to install and configure OpenEMR.
+
+```
+make ansible-run-playbook-emr
+```
+
+### Deletes the .env file.
+
+```
+make clean
+```
+
+## 📝 Notes
+
+Customize .env.template with values suited to your environment before running the setup.
+
+Ensure your Azure account has the necessary permissions to provision resources.
+
+Use the generated .env file to pass environment variables to Terraform and Ansible commands.
+

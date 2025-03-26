@@ -73,6 +73,6 @@ ansible-run-playbook-emr:
 		ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/openemr.yml
 
 
-# === クリーンアップ ===
+
 clean:
 	rm -f $(ENV_FILE)
